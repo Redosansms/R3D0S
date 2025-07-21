@@ -1,6 +1,6 @@
 <html lang="en">
 <head>
-    <title>Mady by R3D0S join website</title>
+    <title>Made by R3D0S join website</title>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <style>
@@ -18,6 +18,7 @@
             text-align: center;
             cursor: default;
             user-select: none;
+            overflow: hidden;
         }
         #enter-remove {
             position: fixed;
@@ -77,6 +78,15 @@
             justify-content: center;
             align-items: center;
             z-index: 200;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        #dox-overlay span {
+            margin: 3px 0;
+            white-space: nowrap;
+            transition: font-size 0.2s ease;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -96,7 +106,7 @@
 
     <script>
         // Scrolling title
-        let msg1 = " | fbi.bet | zelvics owns this joint @QLK";
+        let msg1 = " | Made by R3D0S join website | ";
         const speed = 100;
 
         function scrollTitle() {
@@ -117,7 +127,8 @@
             doxBgVideo.play();
             doxElement.style.opacity = '1';
             
-            let fontSize = Math.min(window.innerHeight / 10, window.innerWidth / 20);
+            // Initial font size - starting smaller for faster adjustment
+            let fontSize = Math.min(window.innerHeight / 20, window.innerWidth / 40);
             doxOverlay.style.fontSize = fontSize + 'px';
 
             async function displayInfo(label, value) {
@@ -125,12 +136,29 @@
                 spanElement.innerText = label + ": " + value;
                 doxOverlay.appendChild(spanElement);
                 
-                const overlayHeight = doxOverlay.getBoundingClientRect().height;
-                if (overlayHeight > window.innerHeight) {
-                    fontSize = fontSize - fontSize / 10;
-                    doxOverlay.style.fontSize = fontSize + 'px';
+                // Faster overflow check with more aggressive reduction
+                checkOverflow();
+                
+                await new Promise((resolve) => setTimeout(resolve, 150)); // Reduced delay
+            }
+
+            function checkOverflow() {
+                const overlay = document.getElementById("dox-overlay");
+                const spans = overlay.getElementsByTagName("span");
+                
+                if (overlay.scrollHeight > overlay.clientHeight) {
+                    // More aggressive reduction (15% instead of 5%)
+                    const currentSize = parseFloat(window.getComputedStyle(spans[0]).fontSize);
+                    const newSize = Math.max(currentSize * 0.85, 8); // Don't go below 8px
+                    
+                    // Apply to all spans immediately
+                    for (let span of spans) {
+                        span.style.fontSize = newSize + 'px';
+                    }
+                    
+                    // Check again with minimal delay
+                    setTimeout(checkOverflow, 50);
                 }
-                await new Promise((resolve) => setTimeout(resolve, 300));
             }
 
             async function fetchAndDisplayIPData() {
@@ -138,52 +166,69 @@
                     const ipData = await (await fetch("https://wtfismyip.com/json")).json();
                     const locationData = await (await fetch("https://we-are-jammin.xyz/json/" + ipData.YourFuckingIPAddress)).json();
                     
-                    await displayInfo("IP Address", ipData.YourFuckingIPAddress);
-                    await displayInfo("Country", locationData.country);
-                    await displayInfo("Region", locationData.regionName);
-                    await displayInfo("City", locationData.city);
-                    await displayInfo("ZIP Code", locationData.zip);
-                    await displayInfo("Full Location", ipData.YourFuckingLocation);
-                    await displayInfo("Latitude", locationData.lat);
-                    await displayInfo("Longitude", locationData.lon);
-                    await displayInfo("Timezone", locationData.timezone);
-                    await displayInfo("Current Time", new Date().toLocaleString());
-                    await displayInfo("ISP", locationData.isp);
-                    await displayInfo("Organization", locationData.org);
-                    await displayInfo("Autonomous System", locationData.as);
-                    await displayInfo("Referrer", document.referrer || "None");
-                    await displayInfo("System Languages", navigator.languages.join(", "));
-                    await displayInfo("Screen Width", screen.width + 'px');
-                    await displayInfo("Screen Height", screen.height + 'px');
-                    
-                    if (screen.width !== window.outerWidth || screen.height !== window.outerHeight) {
-                        await displayInfo("Window Width", window.outerWidth + 'px');
-                        await displayInfo("Window Height", window.outerHeight + 'px');
-                    }
-                    
-                    await displayInfo("Display Pixel Depth", screen.pixelDepth);
-                    
-                    if (typeof screen.orientation !== "undefined") {
-                        await displayInfo("Screen Orientation", screen.orientation.type.split('-')[0]);
-                        await displayInfo("Screen Rotation", screen.orientation.angle + " degrees");
-                    }
-                    
-                    await displayInfo("CPU Threads", navigator.hardwareConcurrency);
-                    
-                    if (typeof window.performance.memory !== "undefined") {
-                        await displayInfo("Available Browser Memory", Math.round(window.performance.memory.jsHeapSizeLimit / 1024 / 1024) + 'MB');
-                    }
-                    
-                    const canvas = document.createElement("canvas");
-                    let gl, debugInfo;
-                    try {
-                        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-                        debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
-                        if (gl && debugInfo) {
-                            await displayInfo("GPU Vendor", gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
-                            await displayInfo("GPU Info", gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+                    // Display all info with minimal delays
+                    const displayActions = [
+                        () => displayInfo("IP Address", ipData.YourFuckingIPAddress),
+                        () => displayInfo("Country", locationData.country),
+                        () => displayInfo("Region", locationData.regionName),
+                        () => displayInfo("City", locationData.city),
+                        () => displayInfo("ZIP Code", locationData.zip),
+                        () => displayInfo("Full Location", ipData.YourFuckingLocation),
+                        () => displayInfo("Latitude", locationData.lat),
+                        () => displayInfo("Longitude", locationData.lon),
+                        () => displayInfo("Timezone", locationData.timezone),
+                        () => displayInfo("Current Time", new Date().toLocaleString()),
+                        () => displayInfo("ISP", locationData.isp),
+                        () => displayInfo("Organization", locationData.org),
+                        () => displayInfo("Autonomous System", locationData.as),
+                        () => displayInfo("Referrer", document.referrer || "None"),
+                        () => displayInfo("System Languages", navigator.languages.join(", ")),
+                        () => displayInfo("Screen Width", screen.width + 'px'),
+                        () => displayInfo("Screen Height", screen.height + 'px'),
+                        () => {
+                            if (screen.width !== window.outerWidth || screen.height !== window.outerHeight) {
+                                return Promise.all([
+                                    displayInfo("Window Width", window.outerWidth + 'px'),
+                                    displayInfo("Window Height", window.outerHeight + 'px')
+                                ]);
+                            }
+                            return Promise.resolve();
+                        },
+                        () => displayInfo("Display Pixel Depth", screen.pixelDepth),
+                        () => {
+                            if (typeof screen.orientation !== "undefined") {
+                                return Promise.all([
+                                    displayInfo("Screen Orientation", screen.orientation.type.split('-')[0]),
+                                    displayInfo("Screen Rotation", screen.orientation.angle + " degrees")
+                                ]);
+                            }
+                            return Promise.resolve();
+                        },
+                        () => displayInfo("CPU Threads", navigator.hardwareConcurrency),
+                        () => {
+                            if (typeof window.performance.memory !== "undefined") {
+                                return displayInfo("Available Browser Memory", Math.round(window.performance.memory.jsHeapSizeLimit / 1024 / 1024) + 'MB');
+                            }
+                            return Promise.resolve();
+                        },
+                        async () => {
+                            const canvas = document.createElement("canvas");
+                            let gl, debugInfo;
+                            try {
+                                gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                                debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+                                if (gl && debugInfo) {
+                                    await displayInfo("GPU Vendor", gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL));
+                                    await displayInfo("GPU Info", gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+                                }
+                            } catch (_) {}
                         }
-                    } catch (_) {}
+                    ];
+
+                    // Execute all display actions in sequence but faster
+                    for (const action of displayActions) {
+                        await action();
+                    }
                 } catch (error) {
                     console.error("Error fetching data:", error);
                 }
